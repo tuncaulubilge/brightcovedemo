@@ -41,4 +41,5 @@ dependencies {
 
     compile "com.brightcove.player:exoplayer:4.6.5"
     compile 'com.brightcove.player:android-ima-plugin:4.6.5'
+    compile 'com.brightcove.player:android-vmap-plugin:4.6.5'
 }

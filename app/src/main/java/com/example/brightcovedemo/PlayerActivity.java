@@ -6,26 +6,21 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.format.DateUtils;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 
-import com.brightcove.ima.GoogleIMAComponent;
 import com.brightcove.ima.GoogleIMAEventType;
 import com.brightcove.player.event.Event;
 import com.brightcove.player.event.EventEmitter;
 import com.brightcove.player.event.EventListener;
-import com.brightcove.player.event.EventType;
 import com.brightcove.player.media.DeliveryType;
 import com.brightcove.player.mediacontroller.BrightcoveMediaController;
 import com.brightcove.player.model.Video;
 import com.brightcove.player.view.BrightcoveExoPlayerVideoView;
-import com.google.ads.interactivemedia.v3.api.AdDisplayContainer;
+import com.brightcove.vmap.VMAPComponent;
 import com.google.ads.interactivemedia.v3.api.AdsManager;
-import com.google.ads.interactivemedia.v3.api.AdsRequest;
-import com.google.ads.interactivemedia.v3.api.ImaSdkFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,8 +31,8 @@ public class PlayerActivity extends AppCompatActivity {
     public BrightcoveExoPlayerVideoView brightcoveVideoView;
     private EventEmitter eventEmitter;
 
-    private GoogleIMAComponent googleIMAComponent;
-    private String adRulesURL = "https://pubads.g.doubleclick.net/gampad/ads?sz=640x360&iu=/6062/iab_vast_samples/skippable&ciu_szs=300x250,728x90&impl=s&gdfp_req=1&env=vp&output=xml_vast2&unviewed_position_start=1&url=[referrer_url]&correlator=[timestamp]";
+    private VMAPComponent vmapComponent;
+    private String adRulesURL = "http://pubads.g.doubleclick.net/gampad/ads?sz=640x480&iu=/124319096/external/ad_rule_samples&ciu_szs=300x250&ad_rule=1&impl=s&gdfp_req=1&env=vp&output=vmap&unviewed_position_start=1&cust_params=deployment%3Ddevsite%26sample_ar%3Dpremidpost&cmsid=496&vid=short_onecue&correlator=";
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -50,9 +45,9 @@ public class PlayerActivity extends AppCompatActivity {
         initMediaController();
         adjustPlayerSize();
 
+        vmapComponent = new VMAPComponent(brightcoveVideoView);
         eventEmitter = brightcoveVideoView.getEventEmitter();
         setupUI();
-        setupGoogleIMA();
 
         Button button = (Button) findViewById(R.id.addVideosButton);
         button.setOnClickListener(new View.OnClickListener() {
@@ -76,7 +71,9 @@ public class PlayerActivity extends AppCompatActivity {
         List<com.brightcove.player.model.Video> videos = new ArrayList<>();
 
         for (String url : videoUrls) {
-            videos.add(Video.createVideo(url, DeliveryType.MP4));
+            Video video = Video.createVideo(url, DeliveryType.MP4);
+            video.getProperties().put(VMAPComponent.VMAP_URL, adRulesURL);
+            videos.add(video);
         }
 
         brightcoveVideoView.addAll(videos);
@@ -115,68 +112,6 @@ public class PlayerActivity extends AppCompatActivity {
         Point size = new Point();
         ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getSize(size);
         return size.x;
-    }
-
-    private void setupGoogleIMA() {
-        // Establish the Google IMA SDK factory instance.
-        final ImaSdkFactory sdkFactory = ImaSdkFactory.getInstance();
-
-        // Enable logging up ad start.
-        eventEmitter.on(EventType.AD_STARTED, new EventListener() {
-            @Override
-            public void processEvent(Event event) {
-                Log.v("T", event.getType());
-            }
-        });
-
-        // Enable logging any failed attempts to play an ad.
-        eventEmitter.on(GoogleIMAEventType.DID_FAIL_TO_PLAY_AD, new EventListener() {
-            @Override
-            public void processEvent(Event event) {
-                Log.v("T", event.getType());
-            }
-        });
-
-        // Enable Logging upon ad completion.
-        eventEmitter.on(EventType.AD_COMPLETED, new EventListener() {
-            @Override
-            public void processEvent(Event event) {
-                Log.v("T", event.getType());
-            }
-        });
-
-        // Set up a listener for initializing AdsRequests. The Google
-        // IMA plugin emits an ad request event as a result of
-        // initializeAdsRequests() being called.
-        eventEmitter.on(GoogleIMAEventType.ADS_REQUEST_FOR_VIDEO, new EventListener() {
-            @Override
-            public void processEvent(Event event) {
-                Log.v("T", "AdsRequestForVideo: " + event.toString());
-                // Create a container object for the ads to be presented.
-                AdDisplayContainer container = sdkFactory.createAdDisplayContainer();
-                container.setPlayer(googleIMAComponent.getVideoAdPlayer());
-                container.setAdContainer(brightcoveVideoView);
-
-                // Build an ads request object and point it to the ad
-                // display container created above.
-                AdsRequest adsRequest = sdkFactory.createAdsRequest();
-                adsRequest.setAdTagUrl(adRulesURL);
-                adsRequest.setAdDisplayContainer(container);
-
-                ArrayList<AdsRequest> adsRequests = new ArrayList<AdsRequest>(1);
-                adsRequests.add(adsRequest);
-
-                // Respond to the event with the new ad requests.
-                event.properties.put(GoogleIMAComponent.ADS_REQUESTS, adsRequests);
-                eventEmitter.respond(event);
-            }
-        });
-
-        // Create the Brightcove IMA Plugin and pass in the event
-        // emitter so that the plugin can integrate with the SDK.
-        googleIMAComponent = new GoogleIMAComponent(brightcoveVideoView, eventEmitter, true);
-
-        // Calling GoogleIMAComponent.initializeAdsRequests() is no longer necessary.
     }
 
 }
