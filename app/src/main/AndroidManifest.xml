@@ -30,7 +30,8 @@
         <activity
             android:name=".PlayerActivity"
             android:label="@string/title_activity_player"
-            android:screenOrientation="portrait"
+            android:screenOrientation="unspecified"
+            android:configChanges="orientation|screenSize"
             android:theme="@style/AppTheme.NoActionBar">
         </activity>
     </application>

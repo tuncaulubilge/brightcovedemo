@@ -8,20 +8,13 @@
     android:fitsSystemWindows="true"
     tools:context="com.example.brightcovedemo.PlayerActivity">
 
-    <android.support.design.widget.AppBarLayout
+    <com.brightcove.player.view.BrightcoveExoPlayerVideoView
+        android:id="@+id/brightcoveVideoView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:theme="@style/AppTheme.AppBarOverlay">
-
-        <android.support.v7.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
-            app:popupTheme="@style/AppTheme.PopupOverlay"/>
-
-    </android.support.design.widget.AppBarLayout>
-
-    <include layout="@layout/content_player"/>
+        android:layout_height="280dp"
+        android:layout_gravity="center_horizontal|top"
+        android:background="@android:color/black"
+        app:brightcove_full_screen="true"
+        app:brightcove_rewind="false"/>
 
 </android.support.design.widget.CoordinatorLayout>

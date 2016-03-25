@@ -1,16 +1,14 @@
 package com.example.brightcovedemo;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.format.DateUtils;
 import android.util.Log;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Button;
 
 import com.brightcove.ima.GoogleIMAComponent;
 import com.brightcove.ima.GoogleIMAEventType;
@@ -42,8 +40,6 @@ public class PlayerActivity extends AppCompatActivity {
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_player);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
 
         // Init Video with media controllers
         brightcoveVideoView = (BrightcoveExoPlayerVideoView) findViewById(R.id.brightcoveVideoView);
@@ -53,13 +49,7 @@ public class PlayerActivity extends AppCompatActivity {
         eventEmitter = brightcoveVideoView.getEventEmitter();
         setupUI();
         setupGoogleIMA();
-
-        Button button = (Button) findViewById(R.id.addVideosButton);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
-                initVideos();
-            }
-        });
+        initVideos();
     }
 
     private void initVideos() {
@@ -179,4 +169,14 @@ public class PlayerActivity extends AppCompatActivity {
         // Calling GoogleIMAComponent.initializeAdsRequests() is no longer necessary.
     }
 
+    @Override public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            eventEmitter.emit(EventType.ENTER_FULL_SCREEN);
+
+        } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            eventEmitter.emit(EventType.EXIT_FULL_SCREEN);
+        }
+    }
 }
